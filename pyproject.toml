@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "vessel"
+version = "0.1.0"
+description = ""
+authors = ["niko.usai <niko.usai@sourcesense.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+click = "^8.0.3"
+pyaml = "^21.10.1"
+pluggy = "^1.0.0"
+peewee = "^3.14.8"
+
+[tool.poetry.scripts]
+vessel = "vessel.cli:cli"
+
+[tool.poetry.dev-dependencies]
+pytest = ">5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
