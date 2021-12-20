@@ -1,17 +1,7 @@
 import re
-from ..manager import vessel_hook
+from ..models import Issue
+from ..manager import vessel_hook, vessel_result
 
-# Monkey Password in env interceptor
-def look_like_password(env): 
-  detected = [] 
-  if env:
-    for var in env:
-      pwd_pattern = '^.*password|pass|pwd|credential.*$'
-      ref_pattern = '^.*ref|name.*$'
-      if re.search(pwd_pattern, var['name'].lower()) and not re.search(ref_pattern, var['name'].lower()):
-        if var.value:
-          detected.append({ "name": var['name'], "value_from": "plain text" })
-  return detected
 
 def container_inspec(k8s_object):
   
@@ -53,22 +43,24 @@ def container_inspec(k8s_object):
     if container.get('security_context') is None:
       missing.append('security_context')
 
-    detetect_look_like_password = look_like_password(container['env'])
     
-    if len(detetect_look_like_password) > 0:
-      data['look_like_password'] = detetect_look_like_password
+    if container.get('env'):
+      for var in container.get('env'):
+        pwd_pattern = '^.*password|pass|pwd|credential.*$'
+        ref_pattern = '^.*ref|name.*$'
+        if re.search(pwd_pattern, var['name'].lower()) and not re.search(ref_pattern, var['name'].lower()):
+          if var.value:
+            detected.append(Issue(name="looks_like_password", metadata={ "name": var['name'], "value_from": "plain text" }))
 
+    
+  
   for miss in missing:
-    data['name'] = name
-    data['namespace'] = k8s_object['metadata']['namespace']
-    data['issue'] = f"missing_{miss}"
+    detected.append(Issue(name=f"missing_{miss}"))
 
-    detected.append(data)
-
-  return missing
+  return detected
 
 
 @vessel_hook
 def deployment(resource):
-  return container_inspec(resource)
+  return vessel_result(container_inspec(resource))
   

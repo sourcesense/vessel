@@ -3,8 +3,9 @@ import pluggy
 import pkgutil
 import click
 import importlib
+import inspect
 from . import tools as tools_impl
- 
+from .models import Issue
 vessel_spec = pluggy.HookspecMarker("vessel")
 vessel_hook = pluggy.HookimplMarker("vessel")
 
@@ -19,7 +20,21 @@ class ToolSpec:
   @vessel_spec
   def job(self, arg1, arg2):
     pass
+
+def vessel_result(res:List[Issue]):
+  frm = inspect.stack()[1]
+  mod = inspect.getmodule(frm[0])
+  final = []
+  for r in res:
+    if not isinstance(r, Issue):
+      raise click.ClickException('tool output is not correct')
+    final.append({
+      "issue": r.name,
+      "issue_metadata": r.metadata,
+      "tool": mod.__name__
+    })  
     
+  return final
 
 class ToolsManager():
   def __init__(self, tasks:List[str]) -> None:
@@ -31,15 +46,17 @@ class ToolsManager():
       if modname in tasks:
         mod = importlib.import_module(f'{tools_impl.__name__}.{modname}')
         self.pm.register(mod)
-    
-  def run(self, resource:dict) -> List[dict]:
-    kind = resource['kind']
+  
+  def run(self, resource:dict, kind:str) -> List[dict]:
+    name = resource['metadata']['name']
+    namespace = resource['metadata']['namespace']
     try:
       hook_to_run = getattr(self.pm.hook, kind.lower())
     except AttributeError as err:
       click.echo(f"No tool registered to handle [{kind}]:  resource {err}")
       return None
-    return hook_to_run(resource=resource)
+    issues = hook_to_run(resource=resource)
+    return [dict({"name": name, "namespace": namespace, "kind": kind}, **i) for sublist in issues for i in sublist ]
     
     
     

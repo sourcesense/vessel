@@ -14,12 +14,9 @@ def single(resource, tools):
     """Runs vessel one shot against a resource."""
     res:dict = yaml.safe_load(resource)
     manager = ToolsManager(tools)
-    results = manager.run(res)
-    ret = []
-    for res in results:
-        ret.extend(res)
+    results = manager.run(res, res['kind'])
 
-    click.echo( json.dumps(ret, indent=2) )
+    click.echo( json.dumps(results, indent=2) )
 
 
 @cli.command()
