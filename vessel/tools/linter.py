@@ -31,7 +31,7 @@ def container_inspec(k8s_object):
         if container.get('livenessProbe', None) is None:
           missing.append('liveness_probe')
 
-        if container.get('readiness_probe', None) is None:
+        if container.get('readinessProbe', None) is None:
           missing.append('readiness_probe')
     
     if container['resources'].get('limits') is None:

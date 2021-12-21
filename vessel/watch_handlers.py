@@ -56,5 +56,7 @@ def kopf_thread(manager:ToolsManager, namespaces:List[str], url:str, token:str):
   memo.manager = manager
   memo.url = url
   memo.token = token
-  
-  asyncio.run(kopf.operator(memo=memo, namespaces=namespaces))
+  if namespaces is not None:
+    asyncio.run(kopf.operator(memo=memo, namespaces=namespaces.split(',')))
+  else:
+    asyncio.run(kopf.operator(memo=memo, clusterwide=True))

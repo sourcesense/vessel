@@ -13,7 +13,7 @@ def run_image(resource):
   for img in images:
     try:
       out = trivy("-q", "image", "-s", "HIGH,CRITICAL", "-f", "json", img)
-    except Exception as e:
+    except Exception:
       print(f"error with trivy for image {img}")
       continue
     json_out = json.loads(out.stdout)

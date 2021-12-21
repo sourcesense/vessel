@@ -20,7 +20,7 @@ def single(resource, tools):
 
 
 @cli.command()
-@click.option('-n', '--namespaces', envvar='NAMESPACES', default="default", type=click.STRING, help="Namespaces to watch separated by commas [default]")
+@click.option('-n', '--namespaces', envvar='NAMESPACES', default=None, type=click.STRING, help="Namespaces to watch separated by commas [default]")
 @click.option('-t', '--tools', envvar='TASKS', default="linter", type=click.STRING, help="Tools to run separated by commas [default]")
 @click.option('-d', '--data', default='./data.db', envvar='DATA', type=click.Path( dir_okay=False, writable=True), help="data file [./data.db]")
 @click.option('--k8s-url', envvar='K8S_URL', type=click.STRING, help="Kubernetes url, if null service account will be used [null]")
@@ -29,7 +29,7 @@ def server(namespaces, tools, data, k8s_url, k8s_token):
     """Run vessel as server in watch mode."""
     click.echo(f"Running for namespaces: {namespaces}")
     manager = ToolsManager(tools)
-    start(data, manager, namespaces.split(','), k8s_url, k8s_token)
+    start(data, manager, namespaces, k8s_url, k8s_token)
 
 
 

@@ -16,9 +16,7 @@ COPY poetry.lock pyproject.toml /app/
 RUN poetry install
 RUN apk del mypacks
 
-COPY tasks.json .
-COPY exclusions.json .
-COPY vessel_collector vessel_collector
+COPY vessel vessel
 
 
 EXPOSE 8089
