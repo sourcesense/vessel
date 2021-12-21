@@ -1,4 +1,5 @@
 import click
+from .models import Context
 import yaml
 import json
 from .manager import ToolsManager
@@ -10,12 +11,15 @@ def cli():
 @cli.command()
 @click.argument('resource', type=click.File())
 @click.option('-t', '--tools', envvar='TASKS', default="linter", type=click.STRING, help="Tools to run separated by commas [default]")
-def single(resource, tools):
+@click.option('--registries', default=None, envvar='REGISTRIES', type=click.File( 'rb'), help="json file with registries mapping credentials [None]")
+def single(resource, tools, registries):
     """Runs vessel one shot against a resource."""
     res:dict = yaml.safe_load(resource)
-    manager = ToolsManager(tools)
+
+    ctx = Context(registries)
+    manager = ToolsManager(tools, ctx)
     results = manager.run(res, res['kind'])
-    #todo:  analyze result and exit with non zero value
+    # todo:  analyze result and exit with non zero value
     click.echo( json.dumps(results, indent=2) )
 
 

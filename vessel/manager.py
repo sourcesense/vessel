@@ -5,26 +5,26 @@ import click
 import importlib
 import inspect
 from . import tools as tools_impl
-from .models import Issue
+from .models import Issue, Context
 vessel_spec = pluggy.HookspecMarker("vessel")
 vessel_hook = pluggy.HookimplMarker("vessel")
 
 class ToolSpec:
   """Spec for tools"""
   @vessel_spec
-  def deployment(self, resource): # pylint:disable=
+  def deployment(self, resource, ctx): # pylint:disable=
     pass
   @vessel_spec
-  def deploymentconfig(self, resource):
+  def deploymentconfig(self, resource, ctx):
     pass
   @vessel_spec
-  def job(self, resource):
+  def job(self, resource, ctx):
     pass
   @vessel_spec
-  def statefulset(self, resource):
+  def statefulset(self, resource, ctx):
     pass
   @vessel_spec
-  def daemonset(self, resource):
+  def daemonset(self, resource, ctx):
     pass
 
 def vessel_result(res:List[Issue]):
@@ -43,9 +43,10 @@ def vessel_result(res:List[Issue]):
   return final
 
 class ToolsManager():
-  def __init__(self, tasks:List[str]) -> None:
+  def __init__(self, tasks:List[str], context:Context) -> None:
     self.pm = pluggy.PluginManager("vessel")
     self.pm.add_hookspecs(ToolSpec)
+    self.ctx = context
     
     # register plugins
     for _, modname, _ in pkgutil.walk_packages(path=tools_impl.__path__):
@@ -61,7 +62,7 @@ class ToolsManager():
     except AttributeError as err:
       click.echo(f"No tool registered to handle [{kind}]:  resource {err}")
       return None
-    issues = hook_to_run(resource=resource)
+    issues = hook_to_run(resource=resource, ctx=self.ctx)
     return [dict({"name": name, "namespace": namespace, "kind": kind}, **i) for sublist in issues for i in sublist ]
     
     

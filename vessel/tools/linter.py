@@ -61,21 +61,21 @@ def container_inspec(k8s_object):
 
 
 @vessel_hook
-def deployment(resource):
+def deployment(resource, ctx):
   return vessel_result(container_inspec(resource))
 
 @vessel_hook
-def deploymentconfig(resource):
+def deploymentconfig(resource, ctx):
   return vessel_result(container_inspec(resource))
 
 @vessel_hook
-def job(resource):
+def job(resource, ctx):
   return vessel_result(container_inspec(resource))
 
 @vessel_hook
-def statefulset(resource):
+def statefulset(resource, ctx):
   return vessel_result(container_inspec(resource))
 
 @vessel_hook
-def daemonset(resource):
+def daemonset(resource, ctx):
   return vessel_result(container_inspec(resource))

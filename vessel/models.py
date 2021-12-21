@@ -1,5 +1,18 @@
+from kopf._core.intents import registries
 from peewee import *
 import datetime
+import json
+
+class Context():
+    registries: dict
+
+    def __init__(self, registries_file) -> None:
+        if registries_file is not None:
+            self.registries = json.load(registries_file)
+        else:
+            self.registries = {}
+            
+        
 
 class Issue():
     name:str
