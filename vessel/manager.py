@@ -15,10 +15,16 @@ class ToolSpec:
   def deployment(self, resource): # pylint:disable=
     pass
   @vessel_spec
-  def deploymentconfig(self, arg1, arg2):
+  def deploymentconfig(self, resource):
     pass
   @vessel_spec
-  def job(self, arg1, arg2):
+  def job(self, resource):
+    pass
+  @vessel_spec
+  def statefulset(self, resource):
+    pass
+  @vessel_spec
+  def daemonset(self, resource):
     pass
 
 def vessel_result(res:List[Issue]):
@@ -46,7 +52,7 @@ class ToolsManager():
       if modname in tasks:
         mod = importlib.import_module(f'{tools_impl.__name__}.{modname}')
         self.pm.register(mod)
-  
+        
   def run(self, resource:dict, kind:str) -> List[dict]:
     name = resource['metadata']['name']
     namespace = resource['metadata']['namespace']

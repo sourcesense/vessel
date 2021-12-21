@@ -6,12 +6,16 @@ import json
 def get_images(resource):
   return [e['image'] for e in  resource['spec']['template']['spec']['containers']]
 
-@vessel_hook
-def deployment(resource):
+
+def run_image(resource):
   images = get_images(resource)
   issues = []
   for img in images:
-    out = trivy("-q", "image", "-s", "HIGH,CRITICAL", "-f", "json", img)
+    try:
+      out = trivy("-q", "image", "-s", "HIGH,CRITICAL", "-f", "json", img)
+    except Exception as e:
+      print(f"error with trivy for image {img}")
+      continue
     json_out = json.loads(out.stdout)
     if json_out.get("Results"):
       for r in json_out["Results"]:
@@ -25,5 +29,26 @@ def deployment(resource):
                 "description": v["Description"],
                 "link": v["PrimaryURL"],
               }))
-  return vessel_result(issues)
+  return issues
  
+
+@vessel_hook
+def deployment(resource):
+  return vessel_result(run_image(resource))
+
+@vessel_hook
+def deploymentconfig(resource):
+  return vessel_result(run_image(resource))
+
+@vessel_hook
+def job(resource):
+  return vessel_result(run_image(resource))
+
+@vessel_hook
+def statefulset(resource):
+  return vessel_result(run_image(resource))
+
+@vessel_hook
+def daemonset(resource):
+  return vessel_result(run_image(resource))
+

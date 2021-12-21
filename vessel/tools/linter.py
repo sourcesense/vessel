@@ -1,6 +1,6 @@
 import re
-from ..models import Issue
-from ..manager import vessel_hook, vessel_result
+from .. import Issue
+from .. import vessel_hook, vessel_result
 
 
 def container_inspec(k8s_object):
@@ -24,7 +24,7 @@ def container_inspec(k8s_object):
         if container.get('livenessProbe', None) is None:
           missing.append('liveness_probe')
 
-        if container.readinessProbe is None:
+        if container.get('readinessProbe') is None:
           missing.append('readiness_probe')
 
       else:
@@ -49,7 +49,7 @@ def container_inspec(k8s_object):
         pwd_pattern = '^.*password|pass|pwd|credential.*$'
         ref_pattern = '^.*ref|name.*$'
         if re.search(pwd_pattern, var['name'].lower()) and not re.search(ref_pattern, var['name'].lower()):
-          if var.value:
+          if var.get('value'):
             detected.append(Issue(name="looks_like_password", metadata={ "name": var['name'], "value_from": "plain text" }))
 
     
@@ -63,4 +63,19 @@ def container_inspec(k8s_object):
 @vessel_hook
 def deployment(resource):
   return vessel_result(container_inspec(resource))
-  
+
+@vessel_hook
+def deploymentconfig(resource):
+  return vessel_result(container_inspec(resource))
+
+@vessel_hook
+def job(resource):
+  return vessel_result(container_inspec(resource))
+
+@vessel_hook
+def statefulset(resource):
+  return vessel_result(container_inspec(resource))
+
+@vessel_hook
+def daemonset(resource):
+  return vessel_result(container_inspec(resource))

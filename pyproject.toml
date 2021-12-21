@@ -11,6 +11,9 @@ pyaml = "^21.10.1"
 pluggy = "^1.0.0"
 peewee = "^3.14.8"
 sh = "^1.14.2"
+aiohttp = "^3.8.1"
+aiohttp-rpc = "^1.0.0"
+kopf = "^1.35.3"
 
 [tool.poetry.scripts]
 vessel = "vessel.cli:cli"

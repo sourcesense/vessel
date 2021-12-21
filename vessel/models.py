@@ -1,4 +1,3 @@
-from collections import namedtuple
 from peewee import *
 import datetime
 
@@ -16,12 +15,13 @@ class Problem(Model):
     namespace = CharField(index=True)
     kind = CharField(index=True)
     issue = CharField(index=True)
-    issue_metadata = CharField()
-    task = CharField(index=True)
+    issue_metadata = CharField(null=True)
+    tool = CharField(index=True)
+    current = BooleanField(index=True, default=True)
     created_at = DateTimeField(default=lambda: datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),index=True)
 
     def __str__(self):
-        return f"{self.name} {self.issue}"
+        return f"{self.namespace}:{self.kind}:{self.name} {self.issue} {self.tool} {self.current}"
     
     def to_dict(self):
         return {
@@ -30,7 +30,7 @@ class Problem(Model):
             'kind': self.kind,
             'issue': self.issue,
             'issue_metadata': self.issue_metadata,
-            'task': self.task,
+            'tool': self.tool,
             'created_at': self.created_at
         }
 
