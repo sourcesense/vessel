@@ -1,0 +1,29 @@
+name: Docker Image
+
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # Disabling shallow clone is recommended for improving relevancy of reporting
+          fetch-depth: 0
+      - name: Set VERSION
+        id: vars
+        run: |
+          echo "::set-output name=VERSION::$(echo ${GITHUB_REF:10})"
+          echo "VERSION=${{steps.vars.outputs.VERSION}}"
+      - name: Docker login
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      - name: Build and Push Docker image
+        run: |
+          docker build . -t sourcesense/vessel:${{steps.vars.outputs.VERSION}}
+          docker push sourcesense/vessel:${{steps.vars.outputs.VERSION}}
+          docker tag sourcesense/vessel:${{steps.vars.outputs.VERSION}} sourcesense/vessel:latest
+          docker push sourcesense/vessel:latest
