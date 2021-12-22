@@ -1,7 +1,10 @@
+import json 
+import logging
 from ..models import Issue, Context
 from ..manager import vessel_hook, vessel_result
 from sh import trivy
-import json 
+
+logger = logging.getLogger(__name__)
 
 def get_images(resource):
   return [e['image'] for e in  resource['spec']['template']['spec']['containers']]
@@ -24,7 +27,7 @@ def run_image(resource, ctx:Context):
     try:
       out = trivy("-q", "image", "-s", "HIGH,CRITICAL", "-f", "json", img, _env=_env)
     except Exception:
-      print(f"error with trivy for image {img}")
+      logger.error(f"error with trivy for image {img}")
       continue
     json_out = json.loads(out.stdout)
     if json_out.get("Results"):

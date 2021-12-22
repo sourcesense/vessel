@@ -4,11 +4,13 @@ import pkgutil
 import click
 import importlib
 import inspect
+import logging
 from . import tools as tools_impl
 from .models import Issue, Context
+
 vessel_spec = pluggy.HookspecMarker("vessel")
 vessel_hook = pluggy.HookimplMarker("vessel")
-
+logger = logging.getLogger(__name__)
 class ToolSpec:
   """Spec for tools"""
   @vessel_spec
@@ -60,7 +62,7 @@ class ToolsManager():
     try:
       hook_to_run = getattr(self.pm.hook, kind.lower())
     except AttributeError as err:
-      click.echo(f"No tool registered to handle [{kind}]:  resource {err}")
+      logger.error(f"No tool registered to handle [{kind}]:  resource {err}")
       return None
     issues = hook_to_run(resource=resource, ctx=self.ctx)
     return [dict({"name": name, "namespace": namespace, "kind": kind}, **i) for sublist in issues for i in sublist ]

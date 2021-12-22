@@ -1,9 +1,12 @@
 import click
-from .models import Context
 import yaml
 import json
+import logging
+from .models import Context
 from .manager import ToolsManager
 from .server import start
+
+
 @click.group()
 def cli():
     pass
@@ -29,12 +32,17 @@ def single(resource, tools, registries):
 @click.option('-d', '--data', default='./data.db', envvar='DATA', type=click.Path( dir_okay=False, writable=True), help="data file [./data.db]")
 @click.option('--k8s-url', envvar='K8S_URL', type=click.STRING, help="Kubernetes url, if null service account will be used [null]")
 @click.option('--k8s-token', envvar='K8S_TOKEN', type=click.STRING, help="Kubernetes authentication token [null]")
-def server(namespaces, tools, data, k8s_url, k8s_token):
+@click.option('--registries', default=None, envvar='REGISTRIES', type=click.File( 'rb'), help="json file with registries mapping credentials [None]")
+@click.option('--verbose',is_flag=True, default=False)
+def server(namespaces, tools, data, k8s_url, k8s_token, registries, verbose):
     """Run vessel as server in watch mode."""
     click.echo(f"Running for namespaces: {namespaces}")
-    manager = ToolsManager(tools)
+    ctx = Context(registries)
+    manager = ToolsManager(tools, ctx)
+    logging.basicConfig(format='%(asctime)s[%(module)-.8s][%(threadName)s][%(levelname)-5s]: %(message)s', datefmt='%m/%d/%Y %I:%M:%S', level=logging.DEBUG if verbose else logging.INFO)
+
+    logging.info("Starting Vessel")
     start(data, manager, namespaces, k8s_url, k8s_token)
 
 
 
-    

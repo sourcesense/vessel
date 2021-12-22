@@ -1,6 +1,7 @@
 import asyncio
 import signal
 import threading
+import logging
 import sys
 from typing import List
 from peewee import SqliteDatabase
@@ -10,13 +11,15 @@ from .models import Problem
 from .web import WebServer
 from .watch_handlers import kopf_thread
 
+logger = logging.getLogger(__name__)
+
 def handle_sighup():
-  print("Sighup received")
   sys.exit(0)
 
-async def graceful_shutdown(db, ioloop):
-  print("Gracful Shutting Down...")
+async def graceful_shutdown(db, ioloop, cancellation_event:asyncio.Event):
+  logger.info("Graceful Shutdown...")
   db.close()
+  cancellation_event.set()
   ioloop.stop()
   sys.exit(0)
 
@@ -36,12 +39,16 @@ def start(data:str, manager:ToolsManager, namespaces:List[str], k8s_url:str, k8s
   webserver = WebServer(db, )
   ioloop.create_task(webserver.runserver(8089))
   # https://pymotw.com/3/asyncio/executors.html
+
+  cancellation_event = threading.Event()
   try:
     thread = threading.Thread(target=kopf_thread, 
-      args=(manager, namespaces, k8s_url, k8s_token), daemon=True)
+      args=(cancellation_event, manager, namespaces, k8s_url, k8s_token), daemon=True)
     thread.start()
     ioloop.run_forever()
+    thread.join()
+    
   except SystemExit:
-    asyncio.run(graceful_shutdown(db, ioloop))
+    asyncio.run(graceful_shutdown(db, ioloop, cancellation_event))
   
 

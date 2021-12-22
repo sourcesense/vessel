@@ -1,9 +1,11 @@
+import logging
 from aiohttp import web
 from peewee import SqliteDatabase
-import click
 from playhouse.shortcuts import model_to_dict
+
 from .models import Problem
 
+logger = logging.getLogger(__name__)
 class WebServer(object):
   def __init__(self, db:SqliteDatabase):
     super().__init__()
@@ -42,9 +44,9 @@ class WebServer(object):
       await self.runner.setup()
       site = web.TCPSite(self.runner, '0.0.0.0', port)
       await site.start()
-      click.echo(f"started webserver on port {port}")
+      logger.info(f"started webserver on port {port}")
     except Exception as e:
-      click.echo(e)
+      logger.error(e)
 
 
 
