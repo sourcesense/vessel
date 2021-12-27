@@ -53,6 +53,7 @@ def login_fn(memo:kopf.Memo, **kwargs):
     return kopf.ConnectionInfo(
         server=memo.url,
         token=memo.token,
+        insecure=memo.insecure,
     )
   else:
     return kopf.login_with_service_account(**kwargs) or kopf.login_with_kubeconfig(**kwargs)
@@ -81,10 +82,10 @@ async def main_async(cancellation_event:threading.Event, memo:kopf.Memo, namespa
       if next(iter(done)).exception():
         _thread.interrupt_main() 
         
-def kopf_thread(event:threading.Event, manager:ToolsManager, namespaces:List[str], url:str, token:str):
+def kopf_thread(event:threading.Event, manager:ToolsManager, namespaces:List[str], url:str, token:str, insecure:bool):
   memo = kopf.Memo()
   memo.manager = manager
   memo.url = url
   memo.token = token
+  memo.insecure = insecure
   asyncio.run(main_async(event, memo, namespaces))
-  

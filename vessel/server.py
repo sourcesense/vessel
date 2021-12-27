@@ -23,7 +23,7 @@ async def graceful_shutdown(db, ioloop, cancellation_event:asyncio.Event):
   ioloop.stop()
   sys.exit(0)
 
-def start(data:str, manager:ToolsManager, namespaces:List[str], k8s_url:str, k8s_token:str):
+def start(data:str, manager:ToolsManager, namespaces:List[str], k8s_url:str, k8s_token:str, insecure:bool):
   ioloop = asyncio.get_event_loop()
   ioloop.add_signal_handler(signal.SIGHUP, handle_sighup)
   ioloop.add_signal_handler(signal.SIGINT, handle_sighup)
@@ -43,12 +43,10 @@ def start(data:str, manager:ToolsManager, namespaces:List[str], k8s_url:str, k8s
   cancellation_event = threading.Event()
   try:
     thread = threading.Thread(target=kopf_thread, 
-      args=(cancellation_event, manager, namespaces, k8s_url, k8s_token), daemon=True)
+      args=(cancellation_event, manager, namespaces, k8s_url, k8s_token, insecure), daemon=True)
     thread.start()
     ioloop.run_forever()
     thread.join()
     
   except SystemExit:
     asyncio.run(graceful_shutdown(db, ioloop, cancellation_event))
-  
-

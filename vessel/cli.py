@@ -32,9 +32,10 @@ def single(resource, tools, registries):
 @click.option('-d', '--data', default='./data.db', envvar='DATA', type=click.Path( dir_okay=False, writable=True), help="data file [./data.db]")
 @click.option('--k8s-url', envvar='K8S_URL', type=click.STRING, help="Kubernetes url, if null service account will be used [null]")
 @click.option('--k8s-token', envvar='K8S_TOKEN', type=click.STRING, help="Kubernetes authentication token [null]")
+@click.option('--insecure', is_flag=True, default=False, envvar='INSECURE', help="Use insecure connection for Kubernetes cluster [False]")
 @click.option('--registries', default=None, envvar='REGISTRIES', type=click.File( 'rb'), help="json file with registries mapping credentials [None]")
 @click.option('--verbose',is_flag=True, default=False)
-def server(namespaces, tools, data, k8s_url, k8s_token, registries, verbose):
+def server(namespaces, tools, data, k8s_url, k8s_token, insecure, registries, verbose):
     """Run vessel as server in watch mode."""
     click.echo(f"Running for namespaces: {namespaces}")
     ctx = Context(registries)
@@ -42,7 +43,4 @@ def server(namespaces, tools, data, k8s_url, k8s_token, registries, verbose):
     logging.basicConfig(format='%(asctime)s [%(module).8s][%(levelname)s] %(message)s', datefmt='%m/%d/%Y %I:%M:%S', level=logging.DEBUG if verbose else logging.INFO)
 
     logging.info("Starting Vessel")
-    start(data, manager, namespaces, k8s_url, k8s_token)
-
-
-
+    start(data, manager, namespaces, k8s_url, k8s_token, insecure)
