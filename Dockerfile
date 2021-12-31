@@ -12,12 +12,19 @@ RUN pip install poetry
 
 RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin 
 
+# install kubesec
+
+RUN cd /tmp && \
+    curl -sfL -o kubesec_linux_amd64.tar.gz https://github.com/controlplaneio/kubesec/releases/download/v2.11.4/kubesec_linux_amd64.tar.gz && \
+    cd /usr/local/bin && \
+    tar -xzvf /tmp/kubesec_linux_amd64.tar.gz kubesec && \
+    rm /tmp/kubesec_linux_amd64.tar.gz
+
 COPY poetry.lock pyproject.toml /app/
 RUN poetry install
 RUN apk del mypacks
 
 COPY vessel vessel
-
 
 EXPOSE 8089
 ENTRYPOINT [ "poetry", "run", "vessel" ]
