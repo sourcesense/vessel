@@ -27,14 +27,15 @@ class WebServer(object):
     page = request.query.get('page', 1)
     
     query_params = [ getattr(Problem, key).in_(request.query.getall(key)) for key in request.query.keys() if key in Problem.__dict__ ]
+    print(query_params)
     query_params.append(Problem.current == True)
     
-      
-    result = [model_to_dict(m) for m in list(Problem.select().where(*query_params).paginate(int(page), int(size)))]
+    q = Problem.select().where(*query_params)
+    result = [model_to_dict(m) for m in list(q.paginate(int(page), int(size)))]
     
     return web.json_response({
       "size": int(size),
-      "count": len(result),
+      "count": q.count(),
       "page": int(page),
       "result": result,
     })
