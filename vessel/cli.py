@@ -13,6 +13,7 @@ def cli():
 
 @cli.command()
 @click.argument('resource', type=click.File())
+@click.option('-t', '--tools', envvar='TASKS', default="linter,trivy,kubesec", type=click.STRING, help="Tools to run separated by commas [default]")
 @click.option('--registries', default=None, envvar='REGISTRIES', type=click.File( 'rb'), help="json file with registries mapping credentials [None]")
 def single(resource, tools, registries):
     """Runs vessel one shot against a resource."""

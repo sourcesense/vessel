@@ -4,21 +4,24 @@ import logging
 from ..models import Issue, Context
 from ..manager import vessel_hook, vessel_result
 from io import StringIO
-from sh import kubesec
+from sh import kubesec, ErrorReturnCode
 
 logger = logging.getLogger(__name__)
 
 def resource_kubesec(k8s_object):
   result = StringIO()
   issues = []
-  yaml = yaml.dump(k8s_object)
+  specyaml = yaml.dump(k8s_object)
 
   try:
-    output = kubesec("scan", "-", _in=specyaml, _out=result)
+    kubesec("scan", "-", _in=specyaml, _out=result)
   except BaseException:
-    vulnerabilities = json.loads(result.getvalue())
-    for v in vulnerabilities:
-      issues.append(Issue(name=f'{v["object"]}', metadata=v["message"]))
+    report = json.loads(result.getvalue())[0] # we examine one at the time always
+    # todo: we use advise ?
+    # for v in report['scoring'].get('advise', []):
+    #   issues.append(Issue(name=f'{v["id"]}', metadata=v))
+    for v in report['scoring'].get('critical', []):
+      issues.append(Issue(name=f'{v["id"]}', metadata=v))
   except ErrorReturnCode:
     logger.error("Unable to execute kubescan")
   
