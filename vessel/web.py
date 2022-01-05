@@ -27,7 +27,6 @@ class WebServer(object):
     page = request.query.get('page', 1)
     
     query_params = [ getattr(Problem, key).in_(request.query.getall(key)) for key in request.query.keys() if key in Problem.__dict__ ]
-    print(query_params)
     query_params.append(Problem.current == True)
     
     q = Problem.select().where(*query_params)

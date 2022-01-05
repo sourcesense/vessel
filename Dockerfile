@@ -20,6 +20,14 @@ RUN cd /tmp && \
     tar -xzvf /tmp/kubesec_linux_amd64.tar.gz kubesec && \
     rm /tmp/kubesec_linux_amd64.tar.gz
 
+# Install Kubescore
+
+RUN cd /tmp && \
+    curl -sfL -o kube-score.tar.gz https://github.com/zegl/kube-score/releases/download/v1.13.0/kube-score_1.13.0_linux_amd64.tar.gz && \
+    cd /usr/local/bin && \
+    tar -xzvf /tmp/kube-score.tar.gz kube-score && \
+    rm /tmp/kube-score.tar.gz
+
 COPY poetry.lock pyproject.toml /app/
 RUN poetry install
 RUN apk del mypacks

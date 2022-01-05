@@ -65,7 +65,7 @@ class ToolsManager():
       logger.error(f"No tool registered to handle [{kind}]:  resource {err}")
       return None
     issues = hook_to_run(resource=resource, ctx=self.ctx)
-    return [dict({"name": name, "namespace": namespace, "kind": kind}, **i) for sublist in issues for i in sublist ]
+    return [dict({"name": name, "namespace": namespace, "kind": kind.lower()}, **i) for sublist in issues for i in sublist ]
     
     
     
