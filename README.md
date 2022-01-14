@@ -1,5 +1,4 @@
-# Vessel 
-
+# Vessel
 
 > Vessel is a service that watches your kubernetes resources and runs against them several tools.
 
@@ -19,20 +18,17 @@ It stores the results of runned tools so you can query them with a simple HTTP /
 ### Run with Docker (ephemeral storage)
 
 Run:
+
 ```bash
 docker run --rm -p 127.0.0.1:8089:8089/tcp --env K8S_URL=http://KUBERNETSURL --env K8S_TOKEN=TOKEN sourcesense/vessel:latest
 ```
 
-### Helm
+## Operator
 
-TBD
-
-### Operator
-
-TBD
-
+The official and supported way, go to [Vessel Operator](https://github.com/sourcesense/vessel-operator).
 
 ### Quering
+
 The query interface is easy, you can pass in querystring the field you want to filter.  
 The Model of the issue that Vessel Collector stores is simple:
 
@@ -60,11 +56,9 @@ Retrieves critical CVE:
 GET http://localhost:8089/query?issue=CRITICAL_CVE
 ```
 
-
-
 ## Development
 
-Vessel collector is developed in python and built with poetry
+Vessel is developed in python and built with poetry
 
 ```bash
 git clone git@github.com:sourcesense/vessel.git
@@ -72,14 +66,13 @@ cd vessel
 poetry install
 ```
 
-### Run the collector
+### Run Vessel as a server
 
 ```bash
- poetry run vessel server --k8s-url K8S_URL --k8s-token K8S_TOKEN
+ poetry run vessel server --k8s-url $K8S_URL --k8s-token $K8S_TOKEN
 ```
 
-
-### Run vessel on a single resource
+### Run Vessel on a single resource
 
 ```bash
 poetry run vessel single RESOURCE.yaml
@@ -87,26 +80,16 @@ poetry run vessel single RESOURCE.yaml
 
 ## Roadmap
 
-- add kubelinter tool
-- add grype tool
-- implement a scoring system
-- ci friendly exit codes based on the scoring
-- implent as an admission control
+- Exit code implementation for CI integration
+- Admission control for Kubernetes resources
+- Unique web interface for all the Vessel resources
+- Implement a scoring system
+- Add grype tool
+- Add kubelinter tool
+- TLS support over Vessel service ingresses.
 
 ## Contributing
 
-You are more than welcome to coontribute new tools to vessel.  
-Integration of a new tool is very simple:
+You are more than welcome to contribute adding new tools to vessel.
 
-- create a new python file/module inside `vessel.tools` module
-- write a function with `@vessel_hook` annotation and name the function with the Kubernetes resource you want to handle
-- you get passed a resource `dict` and a `vessel.models.Context`
-- return an array of `vessel/models.Issue` with just `issue` and `issue_metadata` fields 
-- wrap the array with `vessel_result` function
-- You're done!!
-
-NOTE that everything you need to operate your tools like command line utilities must eb installed in the docker container so add things accordingly to the Dockerfile.
-
-See this [pull request]() as an example.
-
-Make a single pull-request for every tool you want to add.
+Take a look to the [contributing guidelines](CONTRIBUTING.md).
