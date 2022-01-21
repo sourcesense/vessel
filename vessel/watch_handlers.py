@@ -19,15 +19,16 @@ def on_event(event, memo:kopf.Memo, **_):
   try:
     name = event['object']['metadata']['name']
     namespace = event['object']['metadata']['namespace']
-    kind = event['object']['kind']
-    logger.info(f"-> {namespace}::{kind}::{name}")
-    if event['type'] =='DELETED':
+    kind = event['object']['kind'].lower()
+    logger.info(f"-> {namespace}::{kind}::{name} " + str(event['type']))
+
+    if event['type'] == 'DELETED':
       logger.debug('handle deletion')
       query = Problem.update({Problem.current: False}).where(Problem.current == True, Problem.namespace == namespace, Problem.name == name, Problem.kind == kind)
-      query.execute()  
+      query.execute()
     else:  
       results = memo.manager.run(event['object'], kind)
-      # cleanup previos analysis
+      # cleanup previuos analysis
       query = Problem.update({Problem.current: False}).where(Problem.current == True, Problem.namespace == namespace, Problem.name == name, Problem.kind == kind)
       query.execute()  
       problems = [Problem(**kw) for kw in results]
