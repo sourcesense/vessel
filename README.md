@@ -1,10 +1,10 @@
 # Vessel
 
-> Vessel is a service that watches your kubernetes resources and runs against them several tools.
+> Vessel is a service that watches your kubernetes resources and runs  several tools against them.
 
 [![Docker Image](https://github.com/sourcesense/vessel/actions/workflows/tags.yaml/badge.svg)](https://github.com/sourcesense/vessel/actions/workflows/tags.yaml)
 
-It stores the results of runned tools so you can query them with a simple HTTP / json interface. 
+Vessel stores the results of tools that are run so that you can query them with a simple HTTP / json interface. 
 
 #### Available tasks
 
@@ -27,10 +27,10 @@ docker run --rm -p 127.0.0.1:8089:8089/tcp --env K8S_URL=http://KUBERNETSURL --e
 
 The official and supported way, go to [Vessel Operator](https://github.com/sourcesense/vessel-operator).
 
-### Quering
+### Querying
 
 The query interface is easy, you can pass in querystring the field you want to filter.  
-The Model of the issue that Vessel Collector stores is simple:
+The Model of the issue Vessel Collector stores is simple:
 
 ```
 name:  name of the resource
@@ -44,13 +44,13 @@ created_at: date of the issue
 
 ### Examples
 
-Retrieves issue of `deplyment` and `job`:
+Retrieving issue of `deployment` and `job`:
 
 ```http
 GET http://localhost:8089/query?kind=deployment&kind=job
 ```
 
-Retrieves critical CVE:
+Retrieving critical CVE:
 
 ```http
 GET http://localhost:8089/query?issue=CRITICAL_CVE
