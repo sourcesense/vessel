@@ -2,7 +2,7 @@
 
 ## Choosing a tool
 
-Everything that produces an output can be used inside Vessel to gather information and doing scans.
+Everything that produces an output can be used inside Vessel to gather information and do scans.
 
 ## Integrating the tool
 
@@ -23,7 +23,7 @@ Here's an example of the workflow used to integrate [kubesec](https://kubesec.io
 
 ### Stage 1:  make the tool available inside the container
 
-It's easy to add a tool to the container, by adding into the [Dockerfile](https://github.com/sourcesense/vessel/blob/main/Dockerfile#L15-L21) a section like this:
+It's easy to add a tool to the container, by adding a section like this to the [Dockerfile](https://github.com/sourcesense/vessel/blob/main/Dockerfile#L15-L21):
 
 ```dockerfile
 # install kubesec
@@ -37,7 +37,7 @@ RUN cd /tmp && \
 
 ### Stage 2: create the module file
 
-Have a look at the file named [`kubesec.py`](https://github.com/sourcesense/vessel/blob/main/vessel/tools/kubesec.py) under the `vessel/tools` path. [The import section](https://github.com/sourcesense/vessel/blob/main/vessel/tools/kubesec.py#L1-L7) is structured to include all the needed modules, in this case we will have:
+Have a look at the file named [`kubesec.py`](https://github.com/sourcesense/vessel/blob/main/vessel/tools/kubesec.py) under the `vessel/tools` path. [The import section](https://github.com/sourcesense/vessel/blob/main/vessel/tools/kubesec.py#L1-L7) is structured to include all the needed modules. In this case we will have:
 
 ```python
 import json 
@@ -61,7 +61,7 @@ logger = logging.getLogger(__name__)
 
 And then we have [the crucial part](https://github.com/sourcesense/vessel/blob/main/vessel/tools/kubesec.py#L11-L28) of the module, the execution of the `kubesec` tool. 
 
-The `kubesec` command executes as we would launch from a terminal this:
+The `kubesec` command executes as we would launch this from a terminal:
 
 ```console
 $ cat myresource.yaml | kubesec scan -
@@ -103,7 +103,7 @@ The typical output of a problematic yaml will be something like this:
 ]
 ```
 
-This means that we need to cycle over the `[ { "scoring": { "critical": [] } } ]` section of the json, extracting for each problem the `id` as a unique identifier and the entire critical record for metadata.
+This means we need to cycle over the `[ { "scoring": { "critical": [] } } ]` section of the json, extracting for each problem the `id` as a unique identifier and the entire critical record for metadata.
 
 This translates in this code snippet:
 
@@ -137,7 +137,7 @@ We execute `kubesec` and if it fails with return code 2 (so the yaml is consider
 
 After this, we'll have the result of the scan in `issues`, ready to be returned to Vessel.
 
-[Last section](https://github.com/sourcesense/vessel/blob/main/vessel/tools/kubesec.py#L30-L48) will include for each resource you'll want to handle a function named after the resource introduced by a `@vessel_hook` annotation:
+[Last section](https://github.com/sourcesense/vessel/blob/main/vessel/tools/kubesec.py#L30-L48) will include, for each resource you'll want to handle, a function named after the resource introduced by a `@vessel_hook` annotation:
 
 ```python
 @vessel_hook
