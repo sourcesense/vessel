@@ -14,6 +14,7 @@ sh = "^1.14.2"
 aiohttp = "^3.8.1"
 aiohttp-rpc = "^1.0.0"
 kopf = "^1.35.3"
+prometheus_client = "^0.13.1"
 
 [tool.poetry.scripts]
 vessel = "vessel.cli:cli"

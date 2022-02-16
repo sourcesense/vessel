@@ -5,7 +5,11 @@ from playhouse.shortcuts import model_to_dict
 
 from .models import Problem
 
+import prometheus_client as prom
+
 logger = logging.getLogger(__name__)
+gauge = prom.Gauge('problems_total', 'Total Problems Gauge')
+
 class WebServer(object):
   def __init__(self, db:SqliteDatabase):
     super().__init__()
@@ -13,9 +17,9 @@ class WebServer(object):
     self.app = web.Application()
     self.app.router.add_get('/', self.index)
     self.app.router.add_get('/query', self.query)
+    self.app.router.add_get('/metrics', self.metrics)
     self.runner = web.AppRunner(self.app)
     self.routes = web.RouteTableDef()
-    
 
   async def index(self, _):
     return web.json_response({
@@ -39,6 +43,14 @@ class WebServer(object):
       "result": result,
     })
 
+  async def metrics(self, request):
+    query_params = [ Problem.current == True ]
+    q = Problem.select().where(*query_params)
+    gauge.set(q.count())
+    resp = web.Response(body=prom.generate_latest())
+    resp.content_type = prom.CONTENT_TYPE_LATEST
+    return resp
+
   async def runserver(self, port):
     try:
       await self.runner.setup()
@@ -47,6 +59,3 @@ class WebServer(object):
       logger.info(f"started webserver on port {port}")
     except Exception as e:
       logger.error(e)
-
-
-
