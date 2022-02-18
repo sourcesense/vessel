@@ -1,6 +1,6 @@
 import logging
 from aiohttp import web
-from peewee import SqliteDatabase
+from peewee import SqliteDatabase,fn
 from playhouse.shortcuts import model_to_dict
 
 from .models import Problem
@@ -8,7 +8,7 @@ from .models import Problem
 import prometheus_client as prom
 
 logger = logging.getLogger(__name__)
-gauge = prom.Gauge('problems_total', 'Total Problems Gauge')
+vessel_gauge = prom.Gauge('problems_total', 'Total Problems Gauge', ['namespace','kind','issue','tool'])
 
 class WebServer(object):
   def __init__(self, db:SqliteDatabase):
@@ -44,9 +44,23 @@ class WebServer(object):
     })
 
   async def metrics(self, request):
-    query_params = [ Problem.current == True ]
-    q = Problem.select().where(*query_params)
-    gauge.set(q.count())
+    # Cleanup not current issues from vessel_gauge
+    clean_q = (Problem
+               .select(Problem.namespace,Problem.kind,Problem.issue,Problem.tool)
+               .where(Problem.current == False))
+    for clean_record in clean_q:
+      vessel_gauge.labels(namespace=clean_record.namespace,kind=clean_record.kind,issue=clean_record.issue,tool=clean_record.tool).set(0)
+
+    # Populate gauge with current records and total
+    q = (Problem
+        .select(Problem.namespace,Problem.kind,Problem.issue,Problem.tool,Problem.current,fn.COUNT(Problem.namespace).alias('total_problems'))
+        .where(Problem.current == True)
+        .group_by(Problem.namespace, Problem.kind, Problem.issue, Problem.tool)
+        .order_by(Problem.namespace, Problem.kind, Problem.issue, Problem.tool))
+    for record in q:
+      vessel_gauge.labels(namespace=record.namespace,kind=record.kind,issue=record.issue,tool=record.tool).set(record.total_problems)
+
+    # Return the formatted metrics output
     resp = web.Response(body=prom.generate_latest())
     resp.content_type = prom.CONTENT_TYPE_LATEST
     return resp
