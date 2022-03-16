@@ -8,7 +8,17 @@ from .models import Problem
 import prometheus_client as prom
 
 logger = logging.getLogger(__name__)
-vessel_gauge = prom.Gauge('problems_total', 'Total Problems Gauge', ['namespace','kind','issue','tool'])
+# Available fields:
+# - name
+# - namespace
+# - kind
+# - issue
+# - issue_metadata
+# - tool
+vessel_total_issues = prom.Gauge('total_issues', 'Total issues')
+vessel_total_ns_issues = prom.Gauge('total_ns_issues', 'Total issues per namespace', ['namespace'])
+vessel_total_kind_issues = prom.Gauge('total_kind_issues', 'Total issues per kind', ['kind'])
+vessel_total_issue_issues = prom.Gauge('total_issue_issues', 'Total issues per issue', ['issue'])
 
 class WebServer(object):
   def __init__(self, db:SqliteDatabase):
@@ -44,26 +54,39 @@ class WebServer(object):
     })
 
   async def metrics(self, request):
-    # Cleanup not current issues from vessel_gauge
-    clean_q = (Problem
-               .select(Problem.namespace,Problem.kind,Problem.issue,Problem.tool)
-               .where(Problem.current == False))
-    for clean_record in clean_q:
-      vessel_gauge.labels(namespace=clean_record.namespace,kind=clean_record.kind,issue=clean_record.issue,tool=clean_record.tool).set(0)
-
-    # Populate gauge with current records and total
+    # Populate gauge with total issues
     q = (Problem
-        .select(Problem.namespace,Problem.kind,Problem.issue,Problem.tool,Problem.current,fn.COUNT(Problem.namespace).alias('total_problems'))
-        .where(Problem.current == True)
-        .group_by(Problem.namespace, Problem.kind, Problem.issue, Problem.tool)
-        .order_by(Problem.namespace, Problem.kind, Problem.issue, Problem.tool))
-    for record in q:
-      vessel_gauge.labels(namespace=record.namespace,kind=record.kind,issue=record.issue,tool=record.tool).set(record.total_problems)
+        .select(fn.COUNT().alias('total_issues'))
+        .where(Problem.current == True))
+    vessel_total_issues.set(q[0].total_issues)
+
+    # Update other totals
+    self.prom_update_total('namespace', vessel_total_ns_issues, 'total_ns_issues')
+    self.prom_update_total('kind', vessel_total_kind_issues, 'total_kind_issues')
+    self.prom_update_total('issue', vessel_total_issue_issues, 'total_issue_issues')
 
     # Return the formatted metrics output
     resp = web.Response(body=prom.generate_latest())
     resp.content_type = prom.CONTENT_TYPE_LATEST
     return resp
+
+  async def prom_update_total(self, resource_name, prom_resource, total_name):
+    # Cleanup not current issues
+    clean_q = (Problem
+               .select(getattr(Problem, resource_name))
+               .where(Problem.current == False))
+    for clean_record in clean_q:
+      prom_resource.labels(**{resource_name: getattr(clean_record, resource_name)}).set(0)
+
+    # Populate gauge with current records and total
+    q = (Problem
+        .select(getattr(Problem, resource_name),fn.COUNT(getattr(Problem, resource_name)).alias(total_name))
+        .where(Problem.current == True)
+        .group_by(getattr(Problem, resource_name))
+        .order_by(getattr(Problem, resource_name)))
+    for record in q:
+      #import pdb; pdb.set_trace()
+      prom_resource.labels(**{resource_name: getattr(record, resource_name)}).set(getattr(record, total_name))
 
   async def runserver(self, port):
     try:
